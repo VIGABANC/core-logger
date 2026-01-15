@@ -27,16 +27,57 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Workspace debug — list files
+        run: |
+          echo "Workspace root: $GITHUB_WORKSPACE"
+          ls -la
+          echo "Top-level dirs:"
+          find . -maxdepth 2 -type d -print
 
-      - name: Build
-        run: npm run build
+      - name: Find app directory (must have package.json with build script)
+        id: find
+        run: |
+          set -e
+          echo "Searching for package.json with a 'build' script..."
+          APP=""
+          # Check root first
+          node -e "try{const fs=require('fs'); const p=JSON.parse(fs.readFileSync('package.json')); process.exit(p.scripts && p.scripts.build ? 0:1)}catch(e){process.exit(1)}" && APP="." || true
+
+          # If not found in root, search down to 3 levels
+          if [ -z "$APP" ]; then
+            for f in $(find . -maxdepth 3 -type f -name package.json | sort); do
+              if node -e "try{const fs=require('fs'); const p=JSON.parse(fs.readFileSync('$f')); process.exit(p.scripts && p.scripts.build ? 0:1)}catch(e){process.exit(1)}"; then
+                APP=$(dirname "$f")
+                break
+              fi
+            done
+          fi
+
+          if [ -z "$APP" ]; then
+            echo "ERROR: No package.json with a 'build' script found in the repo (searched up to 3 levels)."
+            exit 1
+          fi
+          echo "Found app at: $APP"
+          echo "app_path=$APP" >> $GITHUB_OUTPUT
+
+      - name: Install & Build
+        run: |
+          echo "Using app_path: ${{ steps.find.outputs.app_path }}"
+          cd "${{ steps.find.outputs.app_path }}"
+          echo "Node $(node -v) ; npm $(npm -v)"
+          npm ci
+          npm run build
+        # fail early if build fails
+
+      - name: Show build folder (debug)
+        run: |
+          echo "ls -la ${{ steps.find.outputs.app_path }}/dist || true"
+          ls -la "${{ steps.find.outputs.app_path }}/dist" || true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: ${{ steps.find.outputs.app_path }}/dist
 
   deploy:
     needs: build
@@ -47,3 +88,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Show published URL
+        run: |
+          echo "Published: ${{ steps.deployment.outputs.page_url }}"
