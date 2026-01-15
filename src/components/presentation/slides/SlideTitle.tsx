@@ -56,7 +56,7 @@ export const SlideTitle = () => {
           <div className="absolute -inset-4 bg-gradient-to-r from-[#00E5FF]/20 to-[#A8FF60]/20 rounded-[2rem] blur-2xl opacity-30" />
           <div className="relative bg-[#0B1220] rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden">
             <img
-              src="/syslog_infographic_v2.png"
+              src={`${import.meta.env.BASE_URL}syslog_infographic_v2.png`}
               alt="Syslog Centralized Logging Infographic"
               className="w-full h-auto object-cover"
             />

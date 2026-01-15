@@ -5,7 +5,7 @@ const SyslogTitle = () => {
     <div className="min-h-screen flex flex-col lg:flex-row font-sans text-white overflow-hidden bg-[#0B1220]">
       {/* Left Column - Content */}
       <div className="flex-1 p-12 lg:p-20 flex flex-col justify-center relative z-10">
-        
+
         {/* Header decoration */}
         <div className="w-20 h-1 bg-[#00E5FF] mb-8 shadow-[0_0_10px_#00E5FF]" />
 
@@ -40,10 +40,10 @@ const SyslogTitle = () => {
 
         {/* Objective */}
         <div className="flex items-center gap-4 text-gray-400 bg-[#0B1220]/50 p-4 rounded-lg border border-white/10 max-w-xl">
-            <Terminal className="w-6 h-6 text-[#00E5FF]" />
-            <span className="font-mono text-sm leading-relaxed">
-              "Explain syslog format, transport, and basic hands-on demo"
-            </span>
+          <Terminal className="w-6 h-6 text-[#00E5FF]" />
+          <span className="font-mono text-sm leading-relaxed">
+            "Explain syslog format, transport, and basic hands-on demo"
+          </span>
         </div>
 
       </div>
@@ -57,33 +57,33 @@ const SyslogTitle = () => {
         {/* Generated Diagram */}
         <div className="relative z-10 w-full max-w-2xl transform hover:scale-[1.02] transition-transform duration-500">
           <div className="absolute -inset-1 bg-gradient-to-r from-[#00E5FF] to-[#A8FF60] rounded-xl blur opacity-20" />
-            <img 
-              src="/syslog_architecture_diagram.png" 
-              alt="Syslog Architecture" 
-              className="relative w-full h-auto rounded-xl shadow-2xl border border-white/10"
-            />
-            
-            {/* Overlay Tags - Decorative */}
-            <div className="absolute -top-4 -right-4 bg-[#0B1220] border border-[#00E5FF]/30 px-3 py-1 rounded text-[#00E5FF] text-xs font-mono shadow-lg flex items-center gap-2">
-                <Shield className="w-3 h-3" /> SECURITY
-            </div>
-            <div className="absolute -bottom-4 -left-4 bg-[#0B1220] border border-[#A8FF60]/30 px-3 py-1 rounded text-[#A8FF60] text-xs font-mono shadow-lg flex items-center gap-2">
-                <Cpu className="w-3 h-3" /> PERFORMANCE
-            </div>
+          <img
+            src={`${import.meta.env.BASE_URL}syslog_architecture_diagram.png`}
+            alt="Syslog Architecture"
+            className="relative w-full h-auto rounded-xl shadow-2xl border border-white/10"
+          />
+
+          {/* Overlay Tags - Decorative */}
+          <div className="absolute -top-4 -right-4 bg-[#0B1220] border border-[#00E5FF]/30 px-3 py-1 rounded text-[#00E5FF] text-xs font-mono shadow-lg flex items-center gap-2">
+            <Shield className="w-3 h-3" /> SECURITY
+          </div>
+          <div className="absolute -bottom-4 -left-4 bg-[#0B1220] border border-[#A8FF60]/30 px-3 py-1 rounded text-[#A8FF60] text-xs font-mono shadow-lg flex items-center gap-2">
+            <Cpu className="w-3 h-3" /> PERFORMANCE
+          </div>
         </div>
       </div>
 
       {/* Footer */}
       <div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-center text-xs lg:text-sm font-mono text-gray-500 border-t border-white/5 bg-[#0B1220]/95 backdrop-blur">
-         <div className="flex items-center gap-2">
-            <span className="text-[#00E5FF]">01</span>
-            <span className="w-px h-3 bg-gray-700 mx-2" />
-            <span>SYSLOG ESSENTIALS</span>
-         </div>
-         <div className="flex items-center gap-2">
-            <Lock className="w-3 h-3" />
-            <span className="uppercase tracking-widest text-gray-400">Logs = truth. Collect them.</span>
-         </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[#00E5FF]">01</span>
+          <span className="w-px h-3 bg-gray-700 mx-2" />
+          <span>SYSLOG ESSENTIALS</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Lock className="w-3 h-3" />
+          <span className="uppercase tracking-widest text-gray-400">Logs = truth. Collect them.</span>
+        </div>
       </div>
     </div>
   );
