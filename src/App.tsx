@@ -15,7 +15,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename="/core-logger">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/syslog-title" element={<SyslogTitle />} />
