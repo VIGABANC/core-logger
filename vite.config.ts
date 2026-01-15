@@ -7,7 +7,7 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => {
   const isGitHubPages = process.env.GITHUB_ACTIONS === 'true';
   return {
-    base: './',
+    base: isGitHubPages ? '/core-logger/' : '/',
     server: {
       host: "::",
       port: 8080,
