@@ -1,65 +1,175 @@
-import { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  ChevronLeft, ChevronRight, Maximize2, Minimize2,
+  Pause, Play, RotateCcw, Monitor, FileText, Layout,
+  AlertTriangle, Shield, CheckCircle, HelpCircle, Heart
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SlideTitle } from './slides/SlideTitle';
-import { SlideWhatIsSyslog } from './slides/SlideWhatIsSyslog';
-import { SlideCoreProblems } from './slides/SlideCoreProblems';
-import { SlideArchitecture } from './slides/SlideArchitecture';
-import { SlideMessageAnatomy } from './slides/SlideMessageAnatomy';
-import { SlidePRI } from './slides/SlidePRI';
-import { SlideConfiguration } from './slides/SlideConfiguration';
-import { SlideRsyslog } from './slides/SlideRsyslog';
-import { SlideTransports } from './slides/SlideTransports';
-import { SlideSecurityScenario } from './slides/SlideSecurityScenario';
-import { SlideBestPractices } from './slides/SlideBestPractices';
-import { SlideQA } from './slides/SlideQA';
+
+// Slide Imports
+import { SlideTitle } from './slides/SlideTitle'; // 1
+import { SlideWhatIsSyslog } from './slides/SlideWhatIsSyslog'; // 2
+import { SlideCoreProblems } from './slides/SlideCoreProblems'; // 3
+import { SlideHistory } from './slides/SlideHistory'; // 4
+import { SlideArchitecture } from './slides/SlideArchitecture'; // 5
+import { SlideAnimatedInfographic } from './slides/SlideAnimatedInfographic'; // 6
+import { SlideMessageAnatomy } from './slides/SlideMessageAnatomy'; // 7
+import { SlidePRI } from './slides/SlidePRI'; // 8
+import { SlideConfiguration } from './slides/SlideConfiguration'; // 9
+import { SlideTransports } from './slides/SlideTransports'; // 10
+import { SlideRsyslog } from './slides/SlideRsyslog'; // 11
+import { SlideSecurityScenario } from './slides/SlideSecurityScenario'; // 12
+import { SlideBestPractices } from './slides/SlideBestPractices'; // 13
+import { SlideConclusion } from './slides/SlideConclusion'; // 14
+import { SlideThankYou } from './slides/SlideThankYou'; // 15
 
 const slides = [
   SlideTitle,
   SlideWhatIsSyslog,
   SlideCoreProblems,
+  SlideHistory,
   SlideArchitecture,
+  SlideAnimatedInfographic,
   SlideMessageAnatomy,
   SlidePRI,
   SlideConfiguration,
-  SlideRsyslog,
   SlideTransports,
+  SlideRsyslog,
   SlideSecurityScenario,
   SlideBestPractices,
-  SlideQA,
+  SlideConclusion,
+  SlideThankYou
 ];
+
+const getSlidePart = (index: number) => {
+  if (index < 4) return { id: 1, label: "Part 1: Foundation", color: "#00E5FF" };
+  if (index < 11) return { id: 2, label: "Part 2: Technical", color: "#A8FF60" };
+  return { id: 3, label: "Part 3: Application", color: "#FFB000" };
+};
+
+const getSlideDuration = (index: number) => {
+  if (index < 4) return 90;
+  if (index === 5) return 25; // Slide 6: Wait for animation
+  if (index < 11) return 150;
+  if (index === 11) return 123; // Slide 12: 120s + 3s dramatic pause
+  if (index === 14) return 0; // Slide 15: No auto-advance
+  return 120;
+};
 
 export const Presentation = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const [isPaused, setIsPaused] = useState(false);
+  const [overlay, setOverlay] = useState<'none' | 'black' | 'white'>('none');
+  const [timeLeft, setTimeLeft] = useState(getSlideDuration(0));
 
-  const totalSlides = slides.length;
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const goToSlide = useCallback((index: number, dir: 'next' | 'prev') => {
-    if (isAnimating || index < 0 || index >= totalSlides) return;
-    setIsAnimating(true);
-    setDirection(dir);
-    setTimeout(() => {
-      setCurrentSlide(index);
-      setIsAnimating(false);
-    }, 300);
-  }, [isAnimating, totalSlides]);
+  // --- TRANSITION LOGIC ---
+  const getVariants = (index: number) => {
+    // Group 1: 1-4
+    if (index === 0) return fadeVariants; // 1->2 is fade
+    if (index === 1) return slideUpVariants; // 2->3 is slide up
+    if (index === 2) return cubeVariants; // 3->4 is cube
+
+    // Group 2: 5-11
+    if (index === 3) return morphVariants; // 4->5
+    if (index === 4) return zoomBlurVariants; // 5->6
+    if (index === 5) return typewriterVariants; // 6->7
+    if (index === 6) return pulseVariants; // 7->8
+    if (index === 7) return revealRightVariants; // 8->9
+    if (index === 8) return pushUpVariants; // 9->10
+    if (index === 9) return glitchVariants; // 10->11
+
+    // Group 3: 12-15
+    if (index === 10) return flashZoomVariants; // 11->12
+    if (index === 11) return checklistVariants; // 12->13
+    if (index === 12) return fadeWhiteVariants; // 13->14
+    if (index === 13) return fadeVariants; // 14->15
+
+    return fadeVariants;
+  };
 
   const nextSlide = useCallback(() => {
-    if (currentSlide < totalSlides - 1) {
-      goToSlide(currentSlide + 1, 'next');
+    if (currentSlide < slides.length - 1) {
+      setDirection(1);
+      setCurrentSlide(prev => prev + 1);
+      setTimeLeft(getSlideDuration(currentSlide + 1));
     }
-  }, [currentSlide, totalSlides, goToSlide]);
+  }, [currentSlide]);
 
   const prevSlide = useCallback(() => {
     if (currentSlide > 0) {
-      goToSlide(currentSlide - 1, 'prev');
+      setDirection(-1);
+      setCurrentSlide(prev => prev - 1);
+      setTimeLeft(getSlideDuration(currentSlide - 1));
     }
-  }, [currentSlide, goToSlide]);
+  }, [currentSlide]);
 
-  const toggleFullscreen = useCallback(() => {
+  // --- AUTO-ADVANCE TIMER ---
+  useEffect(() => {
+    if (!isPaused && timeLeft > 0 && currentSlide < slides.length - 1) {
+      timerRef.current = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    }
+
+    if (timeLeft === 0 && !isPaused && currentSlide < slides.length - 1) {
+      nextSlide();
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timeLeft, isPaused, currentSlide, nextSlide]);
+
+  // --- KEYBOARD SHORTCUTS ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      switch (e.key.toLowerCase()) {
+        case 'arrowright':
+        case ' ':
+          e.preventDefault();
+          nextSlide();
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          prevSlide();
+          break;
+        case 'f':
+          toggleFullscreen();
+          break;
+        case 'b':
+          setOverlay(prev => prev === 'black' ? 'none' : 'black');
+          break;
+        case 'w':
+          setOverlay(prev => prev === 'white' ? 'none' : 'white');
+          break;
+        case 'p':
+          setIsPaused(prev => !prev);
+          break;
+        case 'r':
+          if (currentSlide === 5) {
+            setTimeLeft(25);
+            setIsPaused(false);
+            // Trigger re-mount
+            setCurrentSlide(-1);
+            setTimeout(() => setCurrentSlide(5), 10);
+          }
+          break;
+        case 'escape':
+          setOverlay('none');
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentSlide, nextSlide, prevSlide]);
+
+  const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
       setIsFullscreen(true);
@@ -67,126 +177,192 @@ export const Presentation = () => {
       document.exitFullscreen();
       setIsFullscreen(false);
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowRight':
-        case ' ':
-        case 'Enter':
-          e.preventDefault();
-          nextSlide();
-          break;
-        case 'ArrowLeft':
-        case 'Backspace':
-          e.preventDefault();
-          prevSlide();
-          break;
-        case 'f':
-        case 'F':
-          toggleFullscreen();
-          break;
-        case 'Escape':
-          if (isFullscreen) {
-            setIsFullscreen(false);
-          }
-          break;
-      }
-    };
-
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, [nextSlide, prevSlide, toggleFullscreen, isFullscreen]);
-
-  const CurrentSlideComponent = slides[currentSlide];
-  const progress = ((currentSlide + 1) / totalSlides) * 100;
+  const CurrentSlideComponent = slides[currentSlide] || slides[0];
+  const part = getSlidePart(currentSlide);
+  const progress = ((currentSlide + 1) / slides.length) * 100;
 
   return (
-    <div className="relative w-full h-screen bg-gradient-tech overflow-hidden select-none">
-      {/* Slide Content */}
-      <div 
-        className={`w-full h-full flex items-center justify-center p-8 transition-all duration-300 ${
-          isAnimating 
-            ? direction === 'next' 
-              ? 'opacity-0 translate-x-8' 
-              : 'opacity-0 -translate-x-8'
-            : 'opacity-100 translate-x-0'
-        }`}
-      >
-        <div className="w-full max-w-6xl h-full max-h-[800px]">
-          <CurrentSlideComponent />
-        </div>
-      </div>
+    <div className="relative w-full h-screen bg-[#0B1220] overflow-hidden select-none font-sans text-white">
 
-      {/* Navigation Controls */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={prevSlide}
-          disabled={currentSlide === 0}
-          className="h-12 w-12 rounded-full bg-muted/50 hover:bg-muted disabled:opacity-30 transition-all"
+      {/* --- CUE / BADGE (Corner) --- */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={part.id}
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="absolute top-8 left-8 z-50 flex items-center gap-3 px-4 py-1.5 rounded-full border border-white/10 bg-black/40 backdrop-blur-md"
         >
-          <ChevronLeft className="h-6 w-6" />
-        </Button>
-
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 backdrop-blur-sm">
-          <span className="text-sm font-medium text-foreground/80">
-            {currentSlide + 1}
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: part.color }} />
+          <span className="text-[10px] font-black tracking-[0.2em] uppercase" style={{ color: part.color }}>
+            {part.label}
           </span>
-          <span className="text-muted-foreground">/</span>
-          <span className="text-sm text-muted-foreground">{totalSlides}</span>
-        </div>
+        </motion.div>
+      </AnimatePresence>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={nextSlide}
-          disabled={currentSlide === totalSlides - 1}
-          className="h-12 w-12 rounded-full bg-muted/50 hover:bg-muted disabled:opacity-30 transition-all"
-        >
-          <ChevronRight className="h-6 w-6" />
-        </Button>
+      {/* --- OVERLAYS --- */}
+      <AnimatePresence>
+        {overlay !== 'none' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className={`fixed inset-0 z-[100] ${overlay === 'black' ? 'bg-black' : 'bg-white'}`}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* --- MAIN SLIDE STAGE --- */}
+      <div className="w-full h-full flex items-center justify-center p-12">
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={currentSlide}
+            custom={direction}
+            variants={getVariants(currentPhaseIdx(currentSlide, direction))}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: getTransitionDuration(currentSlide), ease: "easeInOut" }}
+            className="w-full max-w-7xl h-full flex items-center justify-center relative shadow-2xl rounded-3xl overflow-hidden border border-white/5"
+          >
+            {currentSlide !== -1 && <CurrentSlideComponent />}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {/* Fullscreen Button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleFullscreen}
-        className="absolute top-6 right-6 h-10 w-10 rounded-lg bg-muted/50 hover:bg-muted transition-all"
-      >
-        {isFullscreen ? (
-          <Minimize2 className="h-5 w-5" />
-        ) : (
-          <Maximize2 className="h-5 w-5" />
-        )}
-      </Button>
+      {/* --- HUD / NAVIGATION --- */}
+      <div className="absolute bottom-10 left-0 right-0 px-12 flex items-center justify-between z-50">
 
-      {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-muted/30">
-        <div
-          className="h-full bg-primary transition-all duration-300 ease-out"
+        {/* Progress & Time */}
+        <div className="flex items-center gap-6 bg-black/40 backdrop-blur-xl border border-white/10 p-2 pl-4 rounded-2xl">
+          <div className="flex flex-col">
+            <span className="text-[9px] font-mono text-white/40 uppercase tracking-widest">Next Advance</span>
+            <span className={`text-xs font-mono font-bold ${timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-[#00E5FF]'}`}>
+              {isPaused ? "PAUSED" : `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`}
+            </span>
+          </div>
+          <div className="w-px h-8 bg-white/10" />
+          <div className="flex items-center gap-3">
+            <button onClick={prevSlide} disabled={currentSlide === 0} className="p-2 hover:bg-white/5 rounded-xl disabled:opacity-20"><ChevronLeft className="w-5 h-5" /></button>
+            <div className="text-sm font-black flex items-center gap-1.5 min-w-[60px] justify-center">
+              <span>{currentSlide + 1}</span>
+              <span className="text-white/20">/</span>
+              <span className="text-white/40">{slides.length}</span>
+            </div>
+            <button onClick={nextSlide} disabled={currentSlide === slides.length - 1} className="p-2 hover:bg-white/5 rounded-xl disabled:opacity-20"><ChevronRight className="w-5 h-5" /></button>
+          </div>
+        </div>
+
+        {/* Global Controls */}
+        <div className="flex items-center gap-4 bg-black/40 backdrop-blur-xl border border-white/10 p-2 rounded-2xl">
+          <button onClick={() => setIsPaused(!isPaused)} className="p-2 hover:bg-white/5 rounded-xl text-white/60">
+            {isPaused ? <Play className="w-4 h-4 fill-current" /> : <Pause className="w-4 h-4 fill-current" />}
+          </button>
+          <button onClick={toggleFullscreen} className="p-2 hover:bg-white/5 rounded-xl text-white/60">
+            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* --- PROGRESS BAR --- */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5">
+        <motion.div
+          className="h-full bg-gradient-to-r from-[#00E5FF] to-[#A8FF60] shadow-[0_0_10px_#00E5FF]"
           style={{ width: `${progress}%` }}
+          transition={{ type: "spring", stiffness: 50 }}
         />
       </div>
 
-      {/* Keyboard Hints */}
-      <div className="absolute bottom-8 right-6 text-xs text-muted-foreground/50 hidden lg:block">
-        <span>← → Navigate</span>
-        <span className="mx-2">•</span>
-        <span>F Fullscreen</span>
-      </div>
     </div>
   );
+};
+
+// --- TRANSITION VARIANTS ---
+
+const currentPhaseIdx = (slide: number, dir: number) => slide - (dir === 1 ? 1 : 0);
+
+const getTransitionDuration = (slide: number) => {
+  if (slide <= 4) return 1.2;
+  if (slide <= 11) return 1.0;
+  return 1.5;
+}
+
+const fadeVariants = {
+  enter: { opacity: 0 },
+  center: { opacity: 1 },
+  exit: { opacity: 0 }
+};
+
+const slideUpVariants = {
+  enter: { y: "100%", opacity: 0 },
+  center: { y: 0, opacity: 1 },
+  exit: { y: "-100%", opacity: 0 }
+};
+
+const cubeVariants = {
+  enter: { rotateY: 90, opacity: 0, x: "50%" },
+  center: { rotateY: 0, opacity: 1, x: 0 },
+  exit: { rotateY: -90, opacity: 0, x: "-50%" }
+};
+
+const morphVariants = {
+  enter: { scale: 0.5, opacity: 0, filter: "blur(10px)" },
+  center: { scale: 1, opacity: 1, filter: "blur(0px)" },
+  exit: { scale: 1.5, opacity: 0, filter: "blur(20px)" }
+};
+
+const zoomBlurVariants = {
+  enter: { scale: 2, opacity: 0, filter: "blur(20px)" },
+  center: { scale: 1, opacity: 1, filter: "blur(0px)" },
+  exit: { scale: 0.5, opacity: 0, filter: "blur(10px)" }
+};
+
+const typewriterVariants = {
+  enter: { x: "100%", opacity: 0 },
+  center: { x: 0, opacity: 1 },
+  exit: { x: "-100%", opacity: 0 }
+};
+
+const pulseVariants = {
+  enter: { scale: 0.9, opacity: 0 },
+  center: { scale: [0.9, 1.05, 1], opacity: 1 },
+  exit: { scale: 1.1, opacity: 0 }
+};
+
+const revealRightVariants = {
+  enter: { x: "100%" },
+  center: { x: 0 },
+  exit: { x: "-100%" }
+};
+
+const pushUpVariants = {
+  enter: { y: "100%" },
+  center: { y: 0 },
+  exit: { y: "-100%" }
+};
+
+const glitchVariants = {
+  enter: { x: 20, opacity: 0, skew: 10 },
+  center: { x: 0, opacity: 1, skew: 0 },
+  exit: { x: -20, opacity: 0, skew: -10 }
+};
+
+const flashZoomVariants = {
+  enter: { scale: 0, opacity: 0, backgroundColor: "#fff" },
+  center: { scale: 1, opacity: 1, backgroundColor: "transparent" },
+  exit: { scale: 2, opacity: 0 }
+};
+
+const checklistVariants = {
+  enter: { opacity: 0, y: 50 },
+  center: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -50 }
+};
+
+const fadeWhiteVariants = {
+  enter: { opacity: 0, backgroundColor: "#fff" },
+  center: { opacity: 1, backgroundColor: "transparent" },
+  exit: { opacity: 0, backgroundColor: "#fff" }
 };

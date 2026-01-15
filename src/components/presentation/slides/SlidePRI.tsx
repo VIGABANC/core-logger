@@ -8,14 +8,14 @@ export const SlidePRI = () => {
   ];
 
   const severities = [
-    { code: 0, name: 'Emergency', desc: 'System is unusable', color: 'bg-red-600' },
-    { code: 1, name: 'Alert', desc: 'Action must be taken', color: 'bg-red-500' },
-    { code: 2, name: 'Critical', desc: 'Critical conditions', color: 'bg-orange-600' },
-    { code: 3, name: 'Error', desc: 'Error conditions', color: 'bg-orange-500' },
-    { code: 4, name: 'Warning', desc: 'Warning conditions', color: 'bg-yellow-500' },
-    { code: 5, name: 'Notice', desc: 'Normal but significant', color: 'bg-cyan-500' },
-    { code: 6, name: 'Info', desc: 'Informational', color: 'bg-blue-500' },
-    { code: 7, name: 'Debug', desc: 'Debug-level messages', color: 'bg-slate-500' },
+    { code: 0, name: 'Emergency', desc: 'System is unusable. Highest alert.', hex: '#DC2626' },
+    { code: 1, name: 'Alert', desc: 'Immediate action required.', hex: '#EF4444' },
+    { code: 2, name: 'Critical', desc: 'Critical conditions.', hex: '#F97316' },
+    { code: 3, name: 'Error', desc: 'Error events that need attention.', hex: '#F59E0B' },
+    { code: 4, name: 'Warning', desc: 'Warning conditions.', hex: '#EAB308' },
+    { code: 5, name: 'Notice', desc: 'Normal but significant events.', hex: '#60A5FA' },
+    { code: 6, name: 'Informational', desc: 'Informational messages.', hex: '#3B82F6' },
+    { code: 7, name: 'Debug', desc: 'Debug-level messages.', hex: '#9CA3AF' },
   ];
 
   return (
@@ -72,11 +72,14 @@ export const SlidePRI = () => {
           <h4 className="font-semibold mb-3 text-secondary">Severity Levels (0-7)</h4>
           <div className="space-y-2">
             {severities.map((s) => (
-              <div 
-                key={s.code} 
+              <div
+                key={s.code}
                 className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors"
               >
-                <div className={`w-8 h-8 rounded ${s.color} flex items-center justify-center text-white font-bold text-sm`}>
+                <div
+                  className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                  style={{ backgroundColor: s.hex }}
+                >
                   {s.code}
                 </div>
                 <div className="flex-1">
